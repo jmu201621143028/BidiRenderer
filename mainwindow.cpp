@@ -56,8 +56,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->levelsColorPickerLabel->setColor(Qt::blue);
     mFontSize = ui->fontSizeSB->value();
     mPenWidth = ui->penWidthSB->value();
-    ui->lineWidthSlider->setRange(mFontSize * 4, mFontSize * 40);
-    ui->lineWidthSlider->setValue(mFontSize * 40);
+    ui->lineWidthSlider->setRange(mFontSize * 4, mFontSize * 100);
+    ui->lineWidthSlider->setValue(mFontSize * 100);
 
     if (FT_Init_FreeType(&mLibrary)) {
         statusBar()->showMessage("Error initializing FreeType", messageTimeout);
@@ -177,6 +177,7 @@ void MainWindow::render()
     if (ui->textCombo->lineEdit()->text().isEmpty())
         return;
 
+    // 获取文本
     QTextCodec *codec = QTextCodec::codecForName("UTF-32");
     QByteArray byteArray = codec->fromUnicode(ui->textCombo->lineEdit()->text());
 
@@ -361,6 +362,7 @@ bool MainWindow::loadSamples()
 
     while(!textStream.atEnd()) {
         QString line = textStream.readLine();
+        qDebug() << "line = " << line;
         ui->textCombo->insertItem(ui->textCombo->count(), line);
     }
     return true;

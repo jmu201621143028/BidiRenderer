@@ -21,9 +21,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 #include <assert.h>
 #include <limits>
+#include <glog/logging.h>
 
 #include "glyph_string.h"
 
@@ -241,7 +241,7 @@ GlyphString::~GlyphString()
     delete[] mCodePoints;
 }
 
-bool GlyphString::init(quint32 *codePoints, int size, FT_Face face,
+bool GlyphString::init(const quint32 *codePoints, int size, FT_Face face,
                        QColor faceColor, FriBidiParType parType, int maxWidth)
 {
     if (size <= 0) return false;
@@ -319,6 +319,7 @@ bool GlyphString::analyze(bool resolveScripts, bool breakOnLevelChange)
         }
     }
 
+    // 分割文本成多个运行段（Run）
     int runID = 0;
     hb_script_t lastScript = mScripts[0];
     int lastLevel = mLevels[0];
@@ -516,6 +517,7 @@ bool GlyphString::layout()
     int lineStart = 0;
     int lastSpace = -1;
 
+    // 根据宽度（mMaxWidth），划分行。
     for (int i = 0; i <= mSize; ++i) {
         if (i == mSize) {
             mLineInfos.push_back(newLine(lineStart, i, lineNo++));
@@ -563,6 +565,7 @@ LineInfo GlyphString::newLine(int startOffset, int endOffset, int lineNo)
     LineInfo lineInfo;
     lineInfo.startOffset = startOffset;
     lineInfo.endOffset = endOffset;
+    // 重新排列文本，使其符合视觉显示的顺序。
     reorderLine(startOffset, endOffset);
 
     int left = std::numeric_limits<int>::max();
@@ -603,16 +606,23 @@ bool GlyphString::loadGlyphImages(bool useGlyphIndices, bool keepXAdvance)
 {
 
     for (int i = 0; i < mSize; ++i) {
+        DLOG(INFO) << "mCodePoints[i] = " << mCodePoints[i]; 
         int glyphIndex;
         if (useGlyphIndices)
             glyphIndex = mGlyphIndices[i];
         else
             glyphIndex = FT_Get_Char_Index(mFace, mCodePoints[i]);
 
-        if (FT_Load_Glyph(mFace, glyphIndex, 0))
+        if (int error = FT_Load_Glyph(mFace, glyphIndex, FT_LOAD_DEFAULT)) {
+            LOG(ERROR) << "FT_Load_Glyph error = " << error 
+                        << ", glyphIndex = " << glyphIndex;
             continue;
-        if (FT_Render_Glyph(mFace->glyph, FT_RENDER_MODE_NORMAL))
+        }
+
+        if (int error = FT_Render_Glyph(mFace->glyph, FT_RENDER_MODE_NORMAL)) {
+            LOG(ERROR) << "FT_Render_Glyph error = " << error;
             continue;
+        }
 
         FT_Bitmap bmp = mFace->glyph->bitmap;
 
@@ -632,7 +642,7 @@ bool GlyphString::loadGlyphImages(bool useGlyphIndices, bool keepXAdvance)
                                                   mFaceColor.blue(),
                                                   bmp.buffer[jj * bmp.pitch + ii]));
         }
-
+        mImages[i].save("./images/" + QString::number(i) + ".png");
     }
 
     return true;

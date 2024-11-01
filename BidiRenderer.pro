@@ -3,7 +3,7 @@
 ######################################################################
 
 FREETYPE_INCLUDEPATH = /usr/include/freetype2
-FREETYPE_LIBS = -L/usr/lib/x86_64-linux-gnu -lfreetype -lz -lpng12
+FREETYPE_LIBS = -L/usr/lib/x86_64-linux-gnu -lfreetype -lz -lpng16
 
 HARFBUZZ_INCLUDEPATH = /usr/include/harfbuzz
 HARFBUZZ_LIBS = -lharfbuzz
@@ -17,6 +17,9 @@ TARGET = BidiRenderer
 INCLUDEPATH += . $${FREETYPE_INCLUDEPATH} $${HARFBUZZ_INCLUDEPATH} \
                $${FRIBIDI_INCLUDEPATH}
 LIBS += $${HARFBUZZ_LIBS} $${FRIBIDI_LIBS} $${FREETYPE_LIBS}
+
+LIBS += -L/usr/lib -lglog
+INCLUDEPATH += /usr/include/glog
 
 # Input
 HEADERS += glyph_string.h glyph_string_visualizer.h arrow.h glyph_string_renderer.h \

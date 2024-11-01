@@ -100,7 +100,7 @@ public:
 
     GlyphString();
     ~GlyphString();
-    bool init(quint32 *codePoints, int size, FT_Face face,
+    bool init(const quint32 *codePoints, int size, FT_Face face,
               QColor faceColor, FriBidiParType parType, int maxWidth);
     bool analyze(bool resolveScripts = true, bool breakOnLevelChange = false);
     bool shapeHarfBuzz();

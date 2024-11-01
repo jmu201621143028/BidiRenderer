@@ -100,8 +100,10 @@ void GlyphStringVisualizer::paint(QPainter *painter,
     pen.setCapStyle(Qt::RoundCap);
     painter->setPen(pen);
 
-    for (int i = 0; i < mCells.size(); ++i)
+    for (int i = 0; i < mCells.size(); ++i) {
+        // 画出每个字符的矩形框
         painter->drawRect(mCells[i]);
+    }
 
     for (int i = 0; i < mArrows.size(); ++i)
         mArrows[i].paint(painter);
