@@ -292,7 +292,12 @@ bool GlyphString::analyze(bool resolveScripts, bool breakOnLevelChange)
         return false;
 
     fribidi_get_bidi_types(mCodePoints, mSize, mTypes);
-    fribidi_get_par_embedding_levels(mTypes, mSize, &mParType, mLevels);
+
+    // the returns of fribidi_get_par_embedding_levels:
+    // Maximum level found plus one, or zero if any error occured (memory allocation failure most probably).
+    if (fribidi_get_par_embedding_levels(mTypes, mSize, &mParType, mLevels) == 0) {
+        return false;
+    }
 
     hb_unicode_funcs_t *ufuncs = hb_unicode_funcs_get_default();
     for (int i = 0; i < mSize; ++i)
@@ -606,7 +611,7 @@ bool GlyphString::loadGlyphImages(bool useGlyphIndices, bool keepXAdvance)
 {
 
     for (int i = 0; i < mSize; ++i) {
-        DLOG(INFO) << "mCodePoints[i] = " << mCodePoints[i]; 
+        // DLOG(INFO) << "mCodePoints[i] = " << mCodePoints[i]; 
         int glyphIndex;
         if (useGlyphIndices)
             glyphIndex = mGlyphIndices[i];
