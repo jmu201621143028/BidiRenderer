@@ -69,6 +69,8 @@ void GlyphStringRenderer::paint(QPainter *painter,
         const QImage &image = mGlyphString->image(mImageIndices[i]);
         QPoint &p = mImagePositions[i];
         painter->drawImage(p.x(), p.y(), image);
+        painter->setBrush(Qt::magenta);
+        painter->drawEllipse(p.x(), p.y(), 20, 20);
     }
 }
 

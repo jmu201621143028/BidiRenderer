@@ -51,6 +51,17 @@ struct Geometry
                  xAdvance(0), yAdvance(0)
     {
     }
+
+    std::string ToString() {
+        std::string ret;
+        ret.append("left = ").append(std::to_string(left))
+           .append(", top = ").append(std::to_string(top))
+           .append(", xOffset = ").append(std::to_string(xOffset))
+           .append(", yOffset = ").append(std::to_string(yOffset))
+           .append(", xAdvance = ").append(std::to_string(xAdvance))
+           .append(", yAdvance = ").append(std::to_string(yAdvance));
+        return ret;
+    }
 };
 
 struct LineInfo
@@ -66,6 +77,18 @@ struct LineInfo
     LineInfo() : startOffset(0), endOffset(0), width(0), height(0),
                  ascent(0), descent(0), left(0)
     {
+    }
+
+    std::string ToString() const {
+        std::string ret;
+        ret.append("startOffset = ").append(std::to_string(startOffset))
+           .append(", endOffset = ").append(std::to_string(endOffset))
+           .append(", width = ").append(std::to_string(width))
+           .append(", height = ").append(std::to_string(height))
+           .append(", ascent = ").append(std::to_string(ascent))
+           .append(", descent = ").append(std::to_string(descent))
+           .append(", left = ").append(std::to_string(left));
+        return ret;
     }
 };
 
@@ -109,7 +132,7 @@ public:
     bool layout();
     LineInfo newLine(int startOffset, int endOffset, int lineNo);
     void clearGlyph(int index);
-    bool loadGlyphImages(bool useGlyphIndices = false, bool keepXAdvance = false);
+    bool loadGlyphImages(bool useGlyphIndices = false, bool keepXAdvance = false, bool isshape = false);
 
     const QVector<LineInfo> & lineInfos() const { return mLineInfos; }
     const QVector<RunInfo> & runInfos() const { return mRunInfos; }

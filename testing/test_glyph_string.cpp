@@ -72,7 +72,8 @@ std::string char32ToString(char32_t c) {
     return std::string(utf8);
 }
 
-TEST_F(GlyphStringTest, analyze) {
+TEST_F(GlyphStringTest, glyphstring) {
+    EXPECT_EQ(m_glyphstr->runInfos().size(), 0);
     EXPECT_EQ(m_glyphstr->analyze(), true);
     for (auto i = 0; i < m_str.size(); ++i) {
         LOG(INFO) << char32ToString(m_str[i]) << " runid = " << m_glyphstr->run(i);
@@ -84,5 +85,26 @@ TEST_F(GlyphStringTest, analyze) {
             << ", run.startOffset = " << info.startOffset
             << ", run.endOffset = " << info.endOffset
             << ", run.direction = " << hb_direction_to_string(info.direction);
+    }
+
+    auto fun = [&] () {
+        std::string codestr;
+        codestr.append("mCodePoints = [");
+        for (auto i = 0; i < m_str.size(); ++i) {
+            codestr.append(std::to_string(m_glyphstr->codePoint(i))).append(", ");
+        }
+        codestr.append("]");
+        return codestr;
+    };
+    
+    LOG(INFO) << "before shapeFriBidi" << fun();
+    EXPECT_EQ(m_glyphstr->shapeFriBidi(), true);
+    LOG(INFO) << "after shapeFriBidi" << fun();
+
+    EXPECT_EQ(m_glyphstr->lineInfos().size(), 0);
+    m_glyphstr->layout();
+    const auto& lines = m_glyphstr->lineInfos();
+    for (const auto& line : lines) {
+        LOG(INFO) << line.ToString();
     }
 }

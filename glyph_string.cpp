@@ -480,7 +480,7 @@ bool GlyphString::shapeFriBidi(bool removeInvisibleCharacters)
     fribidi_shape(FRIBIDI_FLAGS_DEFAULT | FRIBIDI_FLAGS_ARABIC,
                   mLevels, mSize, joiningTypes, mCodePoints);
     delete[] joiningTypes;
-    loadGlyphImages();
+    loadGlyphImages(false, false, true);
 
     if (removeInvisibleCharacters) {
         for (int i = 0; i < mSize; ++i) {
@@ -499,6 +499,8 @@ bool GlyphString::shapeFriBidi(bool removeInvisibleCharacters)
 
 bool GlyphString::reorderLine(int startOffset, int endOffset)
 {
+    // FriBidiStrIndex *map
+    // A map of string indices which is reordered to reflect where each glyph ends up.
     int length = endOffset - startOffset;
     fribidi_reorder_line(0, mTypes + startOffset, length, 0, mParType,
                          mLevels + startOffset, 0, mMap + startOffset);
@@ -529,6 +531,9 @@ bool GlyphString::layout()
             break;
         }
         //if (mCodePoints[i] == ' ') {
+        /* FRIBIDI_TYPE_WS
+        *  表示空白字符， 例如：普通空格（U+0020）, 制表符（\t）, 换行符（\n）, 回车符（\r）
+        */
         if (mTypes[i] == FRIBIDI_TYPE_WS) {
             if (lineStart == i) {
                 lineStart = i + 1;
@@ -571,6 +576,7 @@ LineInfo GlyphString::newLine(int startOffset, int endOffset, int lineNo)
     lineInfo.startOffset = startOffset;
     lineInfo.endOffset = endOffset;
     // 重新排列文本，使其符合视觉显示的顺序。
+    // reorder a line of logical string to visual
     reorderLine(startOffset, endOffset);
 
     int left = std::numeric_limits<int>::max();
@@ -607,7 +613,7 @@ void GlyphString::clearGlyph(int index)
     mGeometries[index] = Geometry();
 }
 
-bool GlyphString::loadGlyphImages(bool useGlyphIndices, bool keepXAdvance)
+bool GlyphString::loadGlyphImages(bool useGlyphIndices, bool keepXAdvance, bool isshape)
 {
 
     for (int i = 0; i < mSize; ++i) {
@@ -619,13 +625,13 @@ bool GlyphString::loadGlyphImages(bool useGlyphIndices, bool keepXAdvance)
             glyphIndex = FT_Get_Char_Index(mFace, mCodePoints[i]);
 
         if (int error = FT_Load_Glyph(mFace, glyphIndex, FT_LOAD_DEFAULT)) {
-            LOG(ERROR) << "FT_Load_Glyph error = " << error 
+            LOG(INFO) << "FT_Load_Glyph error = " << error 
                         << ", glyphIndex = " << glyphIndex;
             continue;
         }
 
         if (int error = FT_Render_Glyph(mFace->glyph, FT_RENDER_MODE_NORMAL)) {
-            LOG(ERROR) << "FT_Render_Glyph error = " << error;
+            LOG(INFO) << "FT_Render_Glyph error = " << error;
             continue;
         }
 
@@ -637,6 +643,8 @@ bool GlyphString::loadGlyphImages(bool useGlyphIndices, bool keepXAdvance)
         if (!keepXAdvance)
             mGeometries[i].xAdvance = mFace->glyph->advance.x / 64;
 
+        LOG(INFO) << "mGeometries[" << i << "]: " << mGeometries[i].ToString();
+ 
         mImages[i] = QImage(bmp.width, bmp.rows, QImage::Format_ARGB32);
 
         for (int ii = 0; ii < bmp.width; ++ii)
@@ -647,7 +655,7 @@ bool GlyphString::loadGlyphImages(bool useGlyphIndices, bool keepXAdvance)
                                                   mFaceColor.blue(),
                                                   bmp.buffer[jj * bmp.pitch + ii]));
         }
-        mImages[i].save("./images/" + QString::number(i) + ".png");
+        mImages[i].save("./images/" + QString::number(i) + (isshape ? "_shape" : "")+ ".png");
     }
 
     return true;
